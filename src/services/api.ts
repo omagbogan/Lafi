@@ -1,3 +1,4 @@
+import { File } from "expo-file-system";
 import { API_URL } from "../config";
 import type { Article } from "../data/articles";
 
@@ -63,8 +64,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     return (await response.json()) as T;
   } catch (error) {
     if (error instanceof ApiError) throw error;
+    const reason =
+      error instanceof Error
+        ? `${error.name} : ${error.message}`
+        : String(error);
     throw new ApiError(
-      "Impossible de joindre le serveur. Vérifiez votre connexion.",
+      `Impossible de joindre le serveur (${path}). Détail : ${reason}`,
       0,
     );
   } finally {
@@ -182,11 +187,7 @@ export const api = {
 
   uploadPhoto: async (uri: string) => {
     const form = new FormData();
-    form.append("file", {
-      uri,
-      name: "photo.jpg",
-      type: "image/jpeg",
-    } as unknown as Blob);
+    form.append("file", new File(uri));
     const result = await request<{ url: string }>("/uploads", {
       method: "POST",
       body: form,
@@ -227,7 +228,8 @@ export const api = {
   suggestCategory: (title: string) =>
     request<{
       category: string | null;
-      confidence: number | null;
+      sous_categorie: string | null;
+      accepte: boolean;
       source: string;
     }>("/ai/category", { method: "POST", body: JSON.stringify({ title }) }),
 };

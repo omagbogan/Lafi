@@ -38,29 +38,24 @@ const keywords: Record<string, string[]> = {
   ],
 };
 
-export type CategorySuggestion = { category: string; confidence: number };
+export type CategorySuggestion = { category: string };
 
 // Repli local si le serveur est injoignable
 function suggestLocally(title: string): CategorySuggestion | null {
   const text = title.toLowerCase();
   for (const [category, words] of Object.entries(keywords)) {
-    if (words.some((w) => text.includes(w)))
-      return { category, confidence: 0.9 };
+    if (words.some((w) => text.includes(w))) return { category };
   }
   return null;
 }
 
-// Appelle l'API (votre classifieur dès qu'il sera branché côté serveur)
 export async function suggestCategory(
   title: string,
 ): Promise<CategorySuggestion | null> {
   try {
     const result = await api.suggestCategory(title);
-    if (result.category)
-      return {
-        category: result.category,
-        confidence: result.confidence ?? 0.9,
-      };
+    // On ne pré-remplit que si le serveur est sûr de lui
+    if (result.accepte && result.category) return { category: result.category };
     return null;
   } catch {
     return suggestLocally(title);
