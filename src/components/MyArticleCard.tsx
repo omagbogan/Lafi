@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Article } from "../data/articles";
-import { colors, fonts, radius } from "../theme";
+import { colors, fonts, radius, shadows } from "../theme";
 import { formatPrice } from "../utils/format";
 
 type Props = {
@@ -36,11 +36,18 @@ export default function MyArticleCard({ article, onEdit, onToggleHidden }: Props
       </Text>
 
       <View style={styles.bottom}>
-        <Pressable style={styles.priceChip} onPress={onEdit}>
+        <Pressable
+          style={({ pressed }) => [styles.priceChip, pressed && styles.chipPressed]}
+          onPress={onEdit}
+        >
           <Text style={styles.price}>{formatPrice(article.price)}</Text>
           <Ionicons name="pencil" size={11} color={colors.textMuted} />
         </Pressable>
-        <Pressable style={styles.eye} onPress={onToggleHidden}>
+        <Pressable
+          style={({ pressed }) => [styles.eye, pressed && styles.eyePressed]}
+          onPress={onToggleHidden}
+          hitSlop={8}
+        >
           <Ionicons
             name={article.hidden ? "eye-off-outline" : "eye-outline"}
             size={16}
@@ -61,6 +68,15 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: 8,
     gap: 8,
+    ...shadows.card,
+  },
+  chipPressed: {
+    transform: [{ scale: 0.96 }],
+    opacity: 0.85,
+  },
+  eyePressed: {
+    transform: [{ scale: 0.9 }],
+    opacity: 0.75,
   },
   photo: { height: 110 },
   photoInner: {

@@ -10,6 +10,7 @@ import {
 import { Alert } from "react-native";
 import { Article } from "../data/articles";
 import { api, NewArticleInput } from "../services/api";
+import { useAuth } from "./AuthContext";
 
 type ArticlesContextType = {
   articles: Article[];
@@ -31,6 +32,7 @@ function messageOf(error: unknown) {
 }
 
 export function ArticlesProvider({ children }: { children: ReactNode }) {
+  const { merchant } = useAuth();
   const [catalog, setCatalog] = useState<Article[]>([]);
   const [myArticles, setMyArticles] = useState<Article[]>([]);
   const [shopOpen, setShopOpenState] = useState(true);
@@ -39,17 +41,27 @@ export function ArticlesProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const [c, m, s] = await Promise.all([api.getCatalog(), api.getMyArticles(), api.getShop()]);
+      const c = await api.getCatalog().catch(() => []);
       setCatalog(c);
-      setMyArticles(m);
-      setShopOpenState(s.is_open);
+
+      if (merchant) {
+        try {
+          const [m, s] = await Promise.all([api.getMyArticles(), api.getShop()]);
+          setMyArticles(m);
+          setShopOpenState(s.is_open);
+        } catch {
+          setMyArticles([]);
+        }
+      } else {
+        setMyArticles([]);
+      }
       setError(null);
     } catch (e) {
       setError(messageOf(e));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [merchant]);
 
   useEffect(() => {
     refresh();
@@ -73,8 +85,30 @@ export function ArticlesProvider({ children }: { children: ReactNode }) {
 
   const addArticle = async (input: NewArticleInput) => {
     try {
-      const photoUrl = input.localPhotoUri ? await api.uploadPhoto(input.localPhotoUri) : undefined;
-      await api.createArticle({ ...input, photoUrl });
+      let photoUrls: string[] = [];
+      const uris =
+        input.localPhotoUris && input.localPhotoUris.length > 0
+          ? input.localPhotoUris
+          : input.localPhotoUri
+            ? [input.localPhotoUri]
+            : [];
+
+      if (uris.length > 0) {
+        photoUrls = await Promise.all(
+          uris.map(async (u) => {
+            if (u.includes("/uploads/")) {
+              return "/uploads/" + u.split("/uploads/")[1];
+            }
+            return api.uploadPhoto(u);
+          }),
+        );
+      }
+
+      await api.createArticle({
+        ...input,
+        photoUrl: photoUrls[0],
+        photos: photoUrls,
+      });
       await refresh();
       return true;
     } catch (e) {

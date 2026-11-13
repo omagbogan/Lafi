@@ -1,12 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, fonts, radius } from "../theme";
+import { colors, fonts, radius, shadows } from "../theme";
 
 type Props = {
   label: string;
   onPress?: () => void;
-  variant?: "primary" | "secondary" | "whatsapp";
+  variant?: "primary" | "secondary" | "whatsapp" | "danger";
   disabled?: boolean;
   icon?: keyof typeof Ionicons.glyphMap;
 };
@@ -19,16 +18,23 @@ export default function Button({
   icon,
 }: Props) {
   const isPrimary = variant === "primary";
+  const isWhatsApp = variant === "whatsapp";
+  const isDanger = variant === "danger";
+
   const textColor = isPrimary
     ? "#FFFFFF"
-    : variant === "whatsapp"
+    : isWhatsApp
       ? colors.whatsapp
-      : colors.primary;
+      : isDanger
+        ? colors.danger
+        : colors.primary;
 
   const content = (
     <View style={styles.row}>
       {icon && <Ionicons name={icon} size={18} color={textColor} />}
-      <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+      <Text style={[styles.label, { color: textColor }]} numberOfLines={1}>
+        {label}
+      </Text>
     </View>
   );
 
@@ -36,43 +42,55 @@ export default function Button({
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed }) => [styles.base, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.base,
+        isPrimary && !disabled && styles.primaryShadow,
+        pressed && !disabled && styles.pressed,
+      ]}
     >
-      {isPrimary && !disabled ? (
-        <LinearGradient
-          colors={[colors.primary, colors.primaryLight]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.inner}
-        >
-          {content}
-        </LinearGradient>
-      ) : (
-        <View
-          style={[
-            styles.inner,
-            isPrimary
-              ? { backgroundColor: colors.disabled }
-              : { backgroundColor: colors.card, borderWidth: 1.5, borderColor: textColor },
-          ]}
-        >
-          {content}
-        </View>
-      )}
+      <View
+        style={[
+          styles.inner,
+          isPrimary
+            ? { backgroundColor: disabled ? colors.disabled : colors.primary }
+            : isWhatsApp
+              ? { backgroundColor: colors.openSurface, borderWidth: 1.5, borderColor: colors.whatsapp }
+              : isDanger
+                ? { backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.danger }
+                : { backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.primary },
+        ]}
+      >
+        {content}
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: { borderRadius: radius.pill, overflow: "hidden" },
-  pressed: { opacity: 0.85 },
+  base: {
+    borderRadius: radius.pill,
+  },
+  primaryShadow: {
+    ...shadows.button,
+  },
+  pressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.92,
+  },
   inner: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.pill,
   },
-  row: { flexDirection: "row", alignItems: "center", gap: 8 },
-  label: { fontFamily: fonts.semibold, fontSize: 15 },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  label: {
+    fontFamily: fonts.semibold,
+    fontSize: 14,
+  },
 });

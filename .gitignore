@@ -41,3 +41,9 @@ example
 # generated native folders
 /ios
 /android
+
+# Machine Learning / Training (fichiers volumineux, modèles et datasets)
+training/
+
+# API dupliquée locale (l'API principale vit dans ../lafi-api)
+api/

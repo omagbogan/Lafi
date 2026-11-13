@@ -1,0 +1,23 @@
+{
+  "short_name": "Lafi",
+  "name": "Lafi - Marché de Proximité",
+  "description": "Application de commerce de proximité avec IA multimodale, paiement sécurisé et livraison Yango.",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#F6F8FD",
+  "theme_color": "#2C64E8",
+  "display": "standalone",
+  "orientation": "portrait"
+}
+

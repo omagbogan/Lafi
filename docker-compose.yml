@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: ../lafi-api
+      dockerfile: Dockerfile
+    container_name: lafi-api
+    restart: always
+    env_file:
+      - ../lafi-api/.env
+    volumes:
+      - ../lafi-api/lafi.db:/app/lafi.db
+      - ../lafi-api/uploads:/app/uploads
+    networks:
+      - lafi-net
+
+  web:
+    build:
+      context: ../lafi-web
+      dockerfile: Dockerfile
+    container_name: lafi-web
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - lafi-net
+
+networks:
+  lafi-net:
+    driver: bridge
+
